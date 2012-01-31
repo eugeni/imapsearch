@@ -1,1 +1,8 @@
 A really simple imap searcher for messages which match a message-id.
+
+Sample usage:
+./imapsearch.py -m "1323867460-5486-33-git-send-email-daniel.vetter@ffwll.ch" -f "lists.intel-gfx" -l eugeni dodonov.net
+
+This will download the message with Message-id: <1323867460-5486-33-git-send-email-daniel.vetter@ffwll.ch> from the "lists.intel-gfx" folder on dodonov.net IMAP server, using login "eugeni".
+
+The message will be output to stdout.
