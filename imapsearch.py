@@ -1,23 +1,25 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 import getpass, imaplib
-
-import sys
-
-login="eugeni.dodonov"
+import email
+import argparse
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print "Usage: %s <folder> <message-id>" % sys.argv[0]
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='Search IMAP')
+    parser.add_argument('hostname', nargs=1, help='Hostname of the IMAP server')
+    parser.add_argument('-l', '--login', default=getpass.getuser(), help='Login name for IMAP server')
+    parser.add_argument('-f', '--folder', default='INBOX', help='folder to search in')
+    parser.add_argument('-m', '--msgid', required=True, help='Message id to search for')
+    args = parser.parse_args()
 
-    print "Using login %s" % login
-    passwd = getpass.getpass()
-    M = imaplib.IMAP4_SSL('imap.gmail.com')
-    M.login(login, passwd)
-    ret = M.select(sys.argv[1])
-    typ, data = M.search(None, '(HEADER Message-id %s)' % sys.argv[2])
+    M = imaplib.IMAP4_SSL(args.hostname[0])
+    M.login(args.login, getpass.getpass())
+    ret = M.select(args.folder, readonly=True)
+    typ, data = M.search(None, '(HEADER Message-id %s)' % args.msgid)
     for num in data[0].split():
         typ, data = M.fetch(num, '(RFC822)')
-        print data[0][1]
+        msg = email.message_from_bytes(data[0][1])
+        for part in msg.walk():
+            if part.get_content_type() == 'text/plain':
+                print(part.get_payload())
     M.close()
     M.logout()
